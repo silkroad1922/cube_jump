@@ -1,6 +1,4 @@
 #include "GameBoard.h"
-//privet 
-//poka 
 
 void GameBoard::Init()
 {
@@ -88,6 +86,9 @@ void GameBoard::checkPlayZone()
 	if (player->getBody().x < PLAY_ZONE.x)
 	{
 		player->setX(PLAY_ZONE.x);
+	}else if ( player->getBody().x > PLAY_ZONE.x + PLAY_ZONE.width -PLAYER_WIDHT)
+	{
+		player->setX(PLAY_ZONE.x + PLAY_ZONE.width - PLAYER_WIDHT);
 	}
 
 }
