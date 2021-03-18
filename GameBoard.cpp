@@ -1,5 +1,6 @@
 #include "GameBoard.h"
 //privet 
+//poka 
 
 void GameBoard::Init()
 {
@@ -28,7 +29,7 @@ void GameBoard::Init()
 		}
 	}
 	
-	player->setY(steps[0]->getStep().y-PLAYER_HEIGHT);//стоит на первой ступени
+	player->setY(steps[0]->getStep().y-PLAYER_HEIGHT);//пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 	player->setX(steps[0]->getStep().x);
 
 	camera.offset = { 200,WINDOW_HEIGHT / 2 };
