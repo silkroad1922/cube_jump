@@ -23,16 +23,17 @@ public:
 	void jumping();
 	bool myCheckCollision(Rectangle, Rectangle, Rectangle);
 	void checkPlayZone();
+	void cameraUpdate();
 
 private:
 	std::unique_ptr<Player> player;
 	std::vector<std::unique_ptr<Steps>> steps;
 	Camera2D camera;
 	bool jump;
+	bool gameOver;
 	Rectangle prev;
-	bool secondRectangle;
-	Rectangle secondRec;
-	float delta;
+	float low_point;
+	int count_steps;
 };
 
 

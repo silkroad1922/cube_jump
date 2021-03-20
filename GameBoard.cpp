@@ -8,29 +8,33 @@ void GameBoard::Init()
 	SetTargetFPS(60);
 
 	jump = true;
-	secondRectangle = false;
-	delta = 0;
+	gameOver = false;
 
+	count_steps = 0;
 
 	player = std::make_unique<Player>(Rectangle{ 150,150,PLAYER_WIDHT,PLAYER_HEIGHT });
 
 
 	for (int i = 0; i < NUMBER_OF_STEPS; i++)
 	{
-		if (i % 2 == 0)
+		if (count_steps % 2 == 0)
 		{
-			steps.push_back(std::make_unique<Steps>(Rectangle{ (float)GetRandomValue(199,550),(float)WINDOW_HEIGHT / 2 + i * -100,STEPS_WIDTH,STEPS_HEIGHT }, 1));
+			steps.push_back(std::make_unique<Steps>(Rectangle{ (float)GetRandomValue(199,550),(float)WINDOW_HEIGHT / 2 + count_steps * -100,STEPS_WIDTH,STEPS_HEIGHT }, 1));
+			count_steps++;
 		}
 		else
 		{
-			steps.push_back(std::make_unique<Steps>(Rectangle{ (float)GetRandomValue(199,550),(float)WINDOW_HEIGHT / 2 + i * -100,STEPS_WIDTH,STEPS_HEIGHT }, -1));
+			steps.push_back(std::make_unique<Steps>(Rectangle{ (float)GetRandomValue(199,550),(float)WINDOW_HEIGHT / 2 + count_steps * -100,STEPS_WIDTH,STEPS_HEIGHT }, -1));
+			count_steps++;
 		}
 	}
 	
-	player->setY(steps[0]->getStep().y-PLAYER_HEIGHT);//����� �� ������ �������
+	player->setY(steps[0]->getStep().y-PLAYER_HEIGHT);
 	player->setX(steps[0]->getStep().x);
 
-	camera.offset = { 200,WINDOW_HEIGHT / 2 };
+	low_point = player->getBody().y + 200;
+
+	camera.offset = { WINDOW_WIDTH/2,WINDOW_HEIGHT/2 };
 	camera.rotation = 0.0f;
 	camera.target = { player->GetXY() };
 	camera.zoom = 1.0f;
@@ -91,6 +95,11 @@ void GameBoard::checkPlayZone()
 		player->setX(PLAY_ZONE.x + PLAY_ZONE.width - PLAYER_WIDHT);
 	}
 
+	if(player->getBody().y > low_point)
+	{
+		gameOver = true;
+	}
+
 }
 
 
@@ -104,8 +113,15 @@ void GameBoard::update()
 
 		jumping();
 
+		if(low_point > player->getBody().y + 200)low_point = player->getBody().y + 200;
+
 		for (int i = 0; i < steps.size(); i++)
 		{
+			if(low_point < steps[i]->getStep().y )
+			{
+				steps[i]->setY((float)WINDOW_HEIGHT / 2 + count_steps * -100);
+				count_steps++;
+			}
 			if (myCheckCollision(player->getBody(), prev, steps[i]->getStep()))
 			{
 				DrawRectangle(100, 100, 500, 500, BLACK);
@@ -115,14 +131,19 @@ void GameBoard::update()
 			}
 		}
 
+		cameraUpdate();
 
 		prev = player->getBody();
 
-		camera.target.y = player->getBody().y;
-		camera.target.x = 400;
-
 		draw();
 	}
+}
+
+void GameBoard::cameraUpdate()
+{
+	if(camera.target.y > player->getBody().y)
+	camera.target.y = player->getBody().y;
+	camera.target.x = 400;
 }
 
 
@@ -139,12 +160,11 @@ void GameBoard::draw()
 			DrawRectangleRec(steps[i]->getStep(), PURPLE);
 		}
 
-		if (secondRectangle)DrawRectangleRec(secondRec, RED);
-
-		DrawRectangleRec(PLAY_ZONE, ColorAlpha(PINK,0.5f));
 		DrawRectangleRec(player->getBody(), RED);
 
 		EndMode2D();
+
+		if(gameOver)DrawText("GameOver",120,200,30,GRAY);
 
 	EndDrawing();
 
