@@ -19,12 +19,12 @@ void GameBoard::Init()
 	{
 		if (count_steps % 2 == 0)
 		{
-			steps.push_back(std::make_unique<Steps>(Rectangle{ (float)GetRandomValue(199,550),(float)WINDOW_HEIGHT / 2 + count_steps * -100,STEPS_WIDTH,STEPS_HEIGHT }, 1));
+			steps.push_back(std::make_unique<Steps>(Rectangle{ (float)GetRandomValue(199,550),(float)WINDOW_HEIGHT / 2 + count_steps * -100,STEPS_WIDTH,STEPS_HEIGHT }));
 			count_steps++;
 		}
 		else
 		{
-			steps.push_back(std::make_unique<Steps>(Rectangle{ (float)GetRandomValue(199,550),(float)WINDOW_HEIGHT / 2 + count_steps * -100,STEPS_WIDTH,STEPS_HEIGHT }, -1));
+			steps.push_back(std::make_unique<Steps>(Rectangle{ (float)GetRandomValue(199,550),(float)WINDOW_HEIGHT / 2 + count_steps * -100,STEPS_WIDTH,STEPS_HEIGHT }));
 			count_steps++;
 		}
 	}
