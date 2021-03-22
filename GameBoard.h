@@ -9,7 +9,7 @@
 #include <memory>
 #include <time.h>
 #include <cstdlib>
-
+#include <cmath>
 
 class GameBoard
 {
@@ -34,6 +34,8 @@ private:
 	Rectangle prev;
 	float low_point;
 	int count_steps;
+	float y_random;
+	float x_random;
 };
 
 

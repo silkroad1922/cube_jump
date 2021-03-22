@@ -12,27 +12,29 @@ void GameBoard::Init()
 
 	count_steps = 0;
 
+
 	player = std::make_unique<Player>(Rectangle{ 150,150,PLAYER_WIDHT,PLAYER_HEIGHT });
 
 
 	for (int i = 0; i < NUMBER_OF_STEPS; i++)
 	{
-		if (count_steps % 2 == 0)
+		x_random = GetRandomValue(199,550);
+		if(i==0)
 		{
-			steps.push_back(std::make_unique<Steps>(Rectangle{ (float)GetRandomValue(199,550),(float)WINDOW_HEIGHT / 2 + count_steps * -100,STEPS_WIDTH,STEPS_HEIGHT }));
-			count_steps++;
-		}
-		else
+			y_random = WINDOW_HEIGHT / 2 + i * GetRandomValue(-100,-50);
+		}else
 		{
-			steps.push_back(std::make_unique<Steps>(Rectangle{ (float)GetRandomValue(199,550),(float)WINDOW_HEIGHT / 2 + count_steps * -100,STEPS_WIDTH,STEPS_HEIGHT }));
-			count_steps++;
+			y_random = steps[i-1]->getStep().y - GetRandomValue(30,100);
 		}
+
+		steps.push_back(std::make_unique<Steps>(Rectangle{ x_random,y_random,STEPS_WIDTH,STEPS_HEIGHT }));
+		count_steps++;
 	}
 	
 	player->setY(steps[0]->getStep().y-PLAYER_HEIGHT);
 	player->setX(steps[0]->getStep().x);
 
-	low_point = player->getBody().y + 200;
+	low_point = player->getBody().y + 350;
 
 	camera.offset = { WINDOW_WIDTH/2,WINDOW_HEIGHT/2 };
 	camera.rotation = 0.0f;
@@ -113,14 +115,23 @@ void GameBoard::update()
 
 		jumping();
 
-		if(low_point > player->getBody().y + 200)low_point = player->getBody().y + 200;
+		if(low_point > player->getBody().y + 350)low_point = player->getBody().y + 350;
 
 		for (int i = 0; i < steps.size(); i++)
 		{
 			if(low_point < steps[i]->getStep().y )
 			{
-				steps[i]->setY((float)WINDOW_HEIGHT / 2 + count_steps * -100);
-				count_steps++;
+				x_random = GetRandomValue(199,550);
+				if(i==0)
+				{
+				y_random = steps[steps.size()-1]->getStep().y - GetRandomValue(30,100);
+				steps[i]->setY(y_random);
+				}else
+				{
+				y_random = steps[i-1]->getStep().y - GetRandomValue(30,100);
+				steps[i]->setY(y_random);
+				}
+				steps[i]->setX(x_random);
 			}
 			if (myCheckCollision(player->getBody(), prev, steps[i]->getStep()))
 			{
