@@ -2,23 +2,33 @@
 
 void GameBoard::Init()
 {
+
 	srand(time(NULL));
 
 	InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "doodle_jump");
-	SetTargetFPS(60);
 
+
+
+	monster = LoadTexture("resource/pixel.png");
+
+	monster.height = 50;
+	monster.width = 50;
+
+	frameRec = { 0.0f, 0.0f, (float)monster.height ,(float)monster.width };//?
+
+	SetTargetFPS(60);
 	jump = true;
 	gameOver = false;
 
 	count_steps = 0;
 
 
-	player = std::make_unique<Player>(Rectangle{ 150,150,PLAYER_WIDHT,PLAYER_HEIGHT });
+	player = std::make_unique<Player>(Rectangle{ 0,0,PLAYER_WIDHT,PLAYER_HEIGHT });
 
 
-	for (int i = 0; i < NUMBER_OF_STEPS; i++)
+	for (size_t i = 0; i < NUMBER_OF_STEPS; i++)
 	{
-		x_random = GetRandomValue(199,550);
+		x_random = GetRandomValue(0,350);
 		if(i==0)
 		{
 			y_random = WINDOW_HEIGHT / 2 + i * GetRandomValue(-100,-50);
@@ -48,8 +58,8 @@ void GameBoard::Init()
 
 void GameBoard::handlerKeyboard()
 {
-	if (IsKeyDown(KEY_RIGHT))player->moveX(4.0f);
-	if (IsKeyDown(KEY_LEFT))player->moveX(-4.0f);
+	if (IsKeyDown(KEY_RIGHT))player->moveX(6.0f);
+	if (IsKeyDown(KEY_LEFT))player->moveX(-6.0f);
 }
 
 void GameBoard::jumping()
@@ -89,12 +99,12 @@ bool GameBoard::myCheckCollision(Rectangle current, Rectangle prev, Rectangle st
 
 void GameBoard::checkPlayZone()
 {
-	if (player->getBody().x < PLAY_ZONE.x)
+	if (player->getBody().x + PLAYER_WIDHT < PLAY_ZONE.x)
 	{
-		player->setX(PLAY_ZONE.x);
-	}else if ( player->getBody().x > PLAY_ZONE.x + PLAY_ZONE.width -PLAYER_WIDHT)
+		player->setX(PLAY_ZONE.x + PLAY_ZONE.width);
+	}else if ( player->getBody().x > PLAY_ZONE.x + PLAY_ZONE.width)
 	{
-		player->setX(PLAY_ZONE.x + PLAY_ZONE.width - PLAYER_WIDHT);
+		player->setX(PLAY_ZONE.x - player->getBody().width);
 	}
 
 	if(player->getBody().y > low_point)
@@ -104,7 +114,7 @@ void GameBoard::checkPlayZone()
 
 }
 
-
+//class 
 void GameBoard::update()
 {
 	while (!WindowShouldClose())
@@ -121,7 +131,7 @@ void GameBoard::update()
 		{
 			if(low_point < steps[i]->getStep().y )
 			{
-				x_random = GetRandomValue(199,550);
+				x_random = GetRandomValue(0,350);
 				if(i==0)
 				{
 				y_random = steps[steps.size()-1]->getStep().y - GetRandomValue(30,100);
@@ -135,9 +145,8 @@ void GameBoard::update()
 			}
 			if (myCheckCollision(player->getBody(), prev, steps[i]->getStep()))
 			{
-				DrawRectangle(100, 100, 500, 500, BLACK);
 				player->setY(steps[i]->getStep().y - 50);
-				player->Velocity = 9.0f;
+				player->Velocity = 10.0f;
 				jump = true;
 			}
 		}
@@ -154,7 +163,7 @@ void GameBoard::cameraUpdate()
 {
 	if(camera.target.y > player->getBody().y)
 	camera.target.y = player->getBody().y;
-	camera.target.x = 400;
+	camera.target.x = 200;
 }
 
 
@@ -162,7 +171,9 @@ void GameBoard::draw()
 {
 	BeginDrawing();
 
-	ClearBackground(BLACK);
+	DrawFPS(0, 200);
+
+	ClearBackground(RAYWHITE);
 		
 		BeginMode2D(camera);
 			
@@ -171,7 +182,10 @@ void GameBoard::draw()
 			DrawRectangleRec(steps[i]->getStep(), PURPLE);
 		}
 
-		DrawRectangleRec(player->getBody(), RED);
+		//DrawRectangleRec(player->getBody(), RED);
+
+		DrawTextureRec(monster, player->getBody(), player->GetXY(), RAYWHITE);
+
 
 		EndMode2D();
 

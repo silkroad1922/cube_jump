@@ -36,6 +36,8 @@ private:
 	int count_steps;
 	float y_random;
 	float x_random;
+	Texture2D monster;
+	Rectangle frameRec; //?
 };
 
 
