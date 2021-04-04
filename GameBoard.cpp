@@ -9,10 +9,14 @@ void GameBoard::Init()
 
 
 
-	monster = LoadTexture("resource/pixel.png");
+	monster = LoadTexture("resource/pixel_5.png");
+	background = LoadTexture("resource/space.png");
+
 
 	monster.height = 50;
 	monster.width = 50;
+
+	background.height = 800;
 
 	frameRec = { 0.0f, 0.0f, (float)monster.height ,(float)monster.width };//?
 
@@ -45,6 +49,7 @@ void GameBoard::Init()
 	player->setX(steps[0]->getStep().x);
 
 	low_point = player->getBody().y + 350;
+	background_scroll = 0.0f;
 
 	camera.offset = { WINDOW_WIDTH/2,WINDOW_HEIGHT/2 };
 	camera.rotation = 0.0f;
@@ -151,6 +156,8 @@ void GameBoard::update()
 			}
 		}
 
+		if(low_point < background_scroll)background_scroll-=700;
+
 		cameraUpdate();
 
 		prev = player->getBody();
@@ -171,11 +178,15 @@ void GameBoard::draw()
 {
 	BeginDrawing();
 
-	DrawFPS(0, 200);
+	DrawText(TextFormat("low_point_ : %02.02f",low_point),0,100,15,GREEN);
 
-	ClearBackground(RAYWHITE);
+	ClearBackground(GetColor(0x052c46ff));
+
 		
 		BeginMode2D(camera);
+
+		DrawTexture(background,0, background_scroll,WHITE);
+		DrawTexture(background,0,background_scroll-700,WHITE);
 			
 		for (int i = 0; i < NUMBER_OF_STEPS; i++)
 		{
@@ -184,12 +195,14 @@ void GameBoard::draw()
 
 		//DrawRectangleRec(player->getBody(), RED);
 
-		DrawTextureRec(monster, player->getBody(), player->GetXY(), RAYWHITE);
+
+		DrawTextureRec(monster, frameRec, player->GetXY(),WHITE);
 
 
 		EndMode2D();
 
 		if(gameOver)DrawText("GameOver",120,200,30,GRAY);
+		DrawFPS(0,200);
 
 	EndDrawing();
 

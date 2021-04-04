@@ -36,7 +36,9 @@ private:
 	int count_steps;
 	float y_random;
 	float x_random;
+	float background_scroll;
 	Texture2D monster;
+	Texture2D background;
 	Rectangle frameRec; //?
 };
 
