@@ -8,24 +8,54 @@ void GameBoard::Init()
 	InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "doodle_jump");
 
 
-
 	monster = LoadTexture("resource/pixel_5.png");
 	background = LoadTexture("resource/space.png");
+	cloud = LoadTexture("resource/test6.png");
+	rocket = LoadTexture("resource/rocket.png");
+	black_hole = LoadTexture("resource/black_hole.png");
 
+	rocket.height = 50;
+	rocket.width = 50;
 
 	monster.height = 50;
 	monster.width = 50;
 
-	background.height = 800;
+	background.height = 700;
 
-	frameRec = { 0.0f, 0.0f, (float)monster.height ,(float)monster.width };//?
+	cloud.height = 10;
+	cloud.width = 50;
+
+	black_hole.width = 100;
+	black_hole.height = 50;
+
+	framePlayer = { 0.0f, 0.0f, (float)monster.width ,(float)monster.height };
+
+	frameRocket = { 0.0f,0.0f,(float)rocket.width , (float)rocket.height };
+
+	frameBlack_hole = { 0.0f,0.0f,(float)black_hole.width,(float)black_hole.height };
+
+	for (size_t i = 0; i < NUMBER_OF_STEPS; i++)
+	{
+		frameStep.push_back(Rectangle{ 0.0f,0.0f,(float)cloud.width,(float)cloud.height });
+	}
 
 	SetTargetFPS(60);
 	jump = true;
 	gameOver = false;
+	visible_player = true;
 
-	count_steps = 0;
+	//int a = 10;
 
+	//constexpr void foo(const int& a)
+
+
+
+	float dt = GetFrameTime();
+
+	//velocity* dt;
+
+	pixel = 5;
+	score = 0;
 
 	player = std::make_unique<Player>(Rectangle{ 0,0,PLAYER_WIDHT,PLAYER_HEIGHT });
 
@@ -42,13 +72,16 @@ void GameBoard::Init()
 		}
 
 		steps.push_back(std::make_unique<Steps>(Rectangle{ x_random,y_random,STEPS_WIDTH,STEPS_HEIGHT }));
-		count_steps++;
 	}
 	
 	player->setY(steps[0]->getStep().y-PLAYER_HEIGHT);
 	player->setX(steps[0]->getStep().x);
 
+	rocket_rectangle = { steps[19]->getStep().x , steps[19]->getStep().y - 50,50,50 };
+	black_hole_rectangle = { 0,-800,100,100 };
+
 	low_point = player->getBody().y + 350;
+	low_point_prev = player->getBody().y + 350;
 	background_scroll = 0.0f;
 
 	camera.offset = { WINDOW_WIDTH/2,WINDOW_HEIGHT/2 };
@@ -61,42 +94,44 @@ void GameBoard::Init()
 
 }
 
-void GameBoard::handlerKeyboard()
+void GameBoard::handlerKeyboard()    
 {
-	if (IsKeyDown(KEY_RIGHT))player->moveX(6.0f);
-	if (IsKeyDown(KEY_LEFT))player->moveX(-6.0f);
+	if (IsKeyDown(KEY_RIGHT))player->moveX(250.0f * dt);
+	if (IsKeyDown(KEY_LEFT))player->moveX(-250.0f * dt);
 }
 
 void GameBoard::jumping()
 {
+	
 	if (jump)
 	{
-		player->moveY(-player->Velocity);
-		player->Velocity -= GRAVITY;
+		player->moveY( -player->Velocity * dt );
+		player->Velocity -= GRAVITY * dt;
 		if (player->Velocity < 0)
 		{
 			player->Velocity = 0.0f;
 			jump = false;
+			visible_player = true;
 		}
 	}
 	else
 	{
-		player->moveY(player->Velocity);
-		player->Velocity += GRAVITY;
-	}
-}
+		player->moveY(player->Velocity * dt);
+		player->Velocity += GRAVITY * dt;
+	} 
+}//delta
 
 bool GameBoard::myCheckCollision(Rectangle current, Rectangle prev, Rectangle step)
 {
-	if ((int)prev.y + 50 <= (int)step.y && (int)current.y + 50 >= (int)step.y
+	if ((int)prev.y + PLAYER_HEIGHT <= (int)step.y && (int)current.y + PLAYER_HEIGHT >= (int)step.y
 		&&
-		((prev.x > step.x && prev.x < step.x + 50)
+		((prev.x + pixel > step.x && prev.x + pixel < step.x + STEPS_WIDTH)
 			||
-			(prev.x + 50 > step.x && prev.x < step.x + 50))
+			(prev.x + PLAYER_WIDHT > step.x && prev.x + pixel < step.x + STEPS_WIDTH))
 		&&
-		((current.x > step.x && current.x < step.x + 50)
+		((current.x + pixel > step.x && current.x + pixel < step.x + STEPS_WIDTH)
 			||
-			(current.x + 50 > step.x && current.x < step.x + 50))
+			(current.x + PLAYER_WIDHT > step.x && current.x + pixel < step.x + STEPS_WIDTH))
 		)return true;
 
 	return false;
@@ -124,13 +159,30 @@ void GameBoard::update()
 {
 	while (!WindowShouldClose())
 	{
+		//dt = 0.015 * 1.2;
+		dt = GetFrameTime();
+
+		//dt = 0.015 * 1.2;
+
+		//dt = 1.0f / 60 * 1.2;
+
 		handlerKeyboard();
 
 		checkPlayZone();
 
 		jumping();
+		
+		if ((int)GetTime() % 30 == 0)//как генерировать бонус?
+		{
+			rocket_rectangle.x = steps[19]->getStep().x;
+			rocket_rectangle.y = steps[19]->getStep().y - 50;
+		}
+
+		score += fabs(low_point - low_point_prev);
 
 		if(low_point > player->getBody().y + 350)low_point = player->getBody().y + 350;
+
+		score += fabs(low_point - low_point_prev);
 
 		for (int i = 0; i < steps.size(); i++)
 		{
@@ -151,18 +203,32 @@ void GameBoard::update()
 			if (myCheckCollision(player->getBody(), prev, steps[i]->getStep()))
 			{
 				player->setY(steps[i]->getStep().y - 50);
-				player->Velocity = 10.0f;
+				player->Velocity = 500.0f;
 				jump = true;
 			}
 		}
 
+		if (CheckCollisionRecs(player->getBody(), rocket_rectangle))player->Velocity = 1000.0f;
+
+		if (CheckCollisionRecs(player->getBody(), black_hole_rectangle) && visible_player)handlerBlack_hole();
+
+		if (low_point < black_hole_rectangle.y) { black_hole_rectangle.y -= GetRandomValue(5000,10000); black_hole_rectangle.x = GetRandomValue(0, 300); }
+	
+
+
 		if(low_point < background_scroll)background_scroll-=700;
+		
 
 		cameraUpdate();
 
 		prev = player->getBody();
+		low_point_prev = low_point;
+		
+
 
 		draw();
+
+	
 	}
 }
 
@@ -173,12 +239,23 @@ void GameBoard::cameraUpdate()
 	camera.target.x = 200;
 }
 
+void GameBoard::handlerBlack_hole()
+{
+	
+	visible_player = false;
+
+	player->Velocity = 1000.0f;
+
+
+
+}
+
 
 void GameBoard::draw()
 {
 	BeginDrawing();
 
-	DrawText(TextFormat("low_point_ : %02.02f",low_point),0,100,15,GREEN);
+	DrawText(TextFormat("low_point_ : %02.02f",score),0,100,15,GREEN);
 
 	ClearBackground(GetColor(0x052c46ff));
 
@@ -188,24 +265,30 @@ void GameBoard::draw()
 		DrawTexture(background,0, background_scroll,WHITE);
 		DrawTexture(background,0,background_scroll-700,WHITE);
 			
-		for (int i = 0; i < NUMBER_OF_STEPS; i++)
+
+		for (size_t i = 0; i < NUMBER_OF_STEPS; i++)
 		{
-			DrawRectangleRec(steps[i]->getStep(), PURPLE);
+			DrawTextureRec(cloud, frameStep.at(i), steps[i]->getPosition(), WHITE);
 		}
 
-		//DrawRectangleRec(player->getBody(), RED);
 
+		DrawTextureRec(black_hole, frameBlack_hole, Vector2{ black_hole_rectangle.x,black_hole_rectangle.y }, WHITE);
+		DrawTextureRec(rocket, frameRocket, Vector2{ rocket_rectangle.x,rocket_rectangle.y }, WHITE);
+		if(visible_player)DrawTextureRec(monster, framePlayer, player->GetXY(),WHITE);
 
-		DrawTextureRec(monster, frameRec, player->GetXY(),WHITE);
 
 
 		EndMode2D();
 
 		if(gameOver)DrawText("GameOver",120,200,30,GRAY);
 		DrawFPS(0,200);
+		DrawText(TextFormat("Score : %02i", score/10), 0, 0,15, GREEN);
+		DrawText(TextFormat("position_y : %02.02f", player->getBody().y),0,100,15,GREEN);
+		DrawText(TextFormat("low_point : %02.02f", low_point), 0, 150, 15, GREEN);
+
+		
 
 	EndDrawing();
-
 
 }
 

@@ -16,7 +16,7 @@ public:
 	void setY(float y) { body.y = y; }
 	void setX(float x) { body.x = x; }
 	
-	float Velocity = 9.0f;
+	float Velocity = 500.0f;
 
 private:
 	Rectangle body;
