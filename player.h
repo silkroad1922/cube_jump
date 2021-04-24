@@ -15,11 +15,23 @@ public:
 	Rectangle getBody() { return body; }
 	void setY(float y) { body.y = y; }
 	void setX(float x) { body.x = x; }
-	
-	float Velocity = 500.0f;
+	void setFrame() { frame = { 0.0f,0.0f,(float)texture.width/2,(float)texture.height }; }
+	void setTexture(const char* filename) { texture = LoadTexture(filename); }
+	void setVisible(bool v) { visible = v; }
+	Rectangle& getFrame() { return frame; }
+	Texture2D& getTexture() { return texture; }
+	bool getVisible() { return visible; }
+	void setBonus(bool b) { bonus = b; }
+	bool getBonus() { return bonus; }
 
+	float Velocity = 500.0f;
 private:
 	Rectangle body;
+	Rectangle frame;
+	Texture2D texture;
+	bool visible;
+	bool bonus;
+
 };
 
 

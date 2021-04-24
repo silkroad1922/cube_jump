@@ -10,13 +10,15 @@
 #include <time.h>
 #include <cstdlib>
 #include <cmath>
-#include <fstream>
+#include "Bonus.h"
+
+
 
 class GameBoard
 {
 public:
 	GameBoard() { Init(); }
-	~GameBoard() { CloseWindow(); UnloadTexture(background); UnloadTexture(monster); UnloadTexture(cloud); }
+	~GameBoard() { CloseWindow(); UnloadTexture(background); UnloadTexture(player->getTexture()); }
 	void Init();
 	void update();
 	void handlerKeyboard();
@@ -30,27 +32,18 @@ public:
 private:
 	std::unique_ptr<Player> player;
 	std::vector<std::unique_ptr<Steps>> steps;
+	std::unique_ptr<Bonus> rocket;
+	std::unique_ptr<Bonus> black_hole;
 	Camera2D camera;
 	bool jump;
 	bool gameOver;
-	bool visible_player;
 	Rectangle prev;
-	Rectangle rocket_rectangle;
-	Rectangle black_hole_rectangle;
 	float low_point;
 	float low_point_prev;
 	float y_random;
 	float x_random;
 	float background_scroll;
-	Texture2D monster;
 	Texture2D background;
-	Texture2D cloud;
-	Texture2D rocket;
-	Texture2D black_hole;
-	Rectangle frameRocket;		
-	Rectangle framePlayer; //?
-	Rectangle frameBlack_hole;
-	std::vector<Rectangle> frameStep;
 	int pixel;//отступ от леовй стороны до ноги персонажа
 	int score;
 	float dt;

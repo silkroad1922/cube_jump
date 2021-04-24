@@ -2,64 +2,23 @@
 
 void GameBoard::Init()
 {
-
+	
 	srand(time(NULL));
 
 	InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "doodle_jump");
 
-
-	monster = LoadTexture("resource/pixel_5.png");
 	background = LoadTexture("resource/space.png");
-	cloud = LoadTexture("resource/test6.png");
-	rocket = LoadTexture("resource/rocket.png");
-	black_hole = LoadTexture("resource/black_hole.png");
 
-	rocket.height = 50;
-	rocket.width = 50;
-
-	monster.height = 50;
-	monster.width = 50;
-
-	background.height = 700;
-
-	cloud.height = 10;
-	cloud.width = 50;
-
-	black_hole.width = 100;
-	black_hole.height = 50;
-
-	framePlayer = { 0.0f, 0.0f, (float)monster.width ,(float)monster.height };
-
-	frameRocket = { 0.0f,0.0f,(float)rocket.width , (float)rocket.height };
-
-	frameBlack_hole = { 0.0f,0.0f,(float)black_hole.width,(float)black_hole.height };
-
-	for (size_t i = 0; i < NUMBER_OF_STEPS; i++)
-	{
-		frameStep.push_back(Rectangle{ 0.0f,0.0f,(float)cloud.width,(float)cloud.height });
-	}
 
 	SetTargetFPS(60);
 	jump = true;
 	gameOver = false;
-	visible_player = true;
 
-	//int a = 10;
-
-	//constexpr void foo(const int& a)
-
-
-
-	float dt = GetFrameTime();
-
-	//velocity* dt;
-
-	pixel = 5;
+	pixel = 15;
 	score = 0;
+	dt = GetFrameTime();
 
-	player = std::make_unique<Player>(Rectangle{ 0,0,PLAYER_WIDHT,PLAYER_HEIGHT });
-
-
+	//step	
 	for (size_t i = 0; i < NUMBER_OF_STEPS; i++)
 	{
 		x_random = GetRandomValue(0,350);
@@ -72,13 +31,32 @@ void GameBoard::Init()
 		}
 
 		steps.push_back(std::make_unique<Steps>(Rectangle{ x_random,y_random,STEPS_WIDTH,STEPS_HEIGHT }));
+		steps[i]->setTexture("resource/test6.png");
+		steps[i]->setFrame();
 	}
-	
+	//
+
+	//player
+	player = std::make_unique<Player>(Rectangle{ 0,0,PLAYER_WIDHT,PLAYER_HEIGHT });
+	player->setTexture("resource/pixel_8.png");
+	player->setFrame();
+	player->setVisible(true);
 	player->setY(steps[0]->getStep().y-PLAYER_HEIGHT);
 	player->setX(steps[0]->getStep().x);
+	player->setBonus(false);
+	//
 
-	rocket_rectangle = { steps[19]->getStep().x , steps[19]->getStep().y - 50,50,50 };
-	black_hole_rectangle = { 0,-800,100,100 };
+	//rocket
+	rocket = std::make_unique<Bonus>(Rectangle{ steps[10]->getStep().x,steps[10]->getStep().y-50,50,50 });
+	rocket->setTexture("resource/rocket.png");
+	rocket->setFrame();
+	//
+
+	//black_hole
+	black_hole = std::make_unique<Bonus>(Rectangle{ 0,-800,50,50 });
+	black_hole->setTexture("resource/black_hole.png");
+	black_hole->setFrame();
+	//
 
 	low_point = player->getBody().y + 350;
 	low_point_prev = player->getBody().y + 350;
@@ -102,7 +80,7 @@ void GameBoard::handlerKeyboard()
 
 void GameBoard::jumping()
 {
-	
+	if (dt > 0.2)dt = 0;
 	if (jump)
 	{
 		player->moveY( -player->Velocity * dt );
@@ -111,7 +89,8 @@ void GameBoard::jumping()
 		{
 			player->Velocity = 0.0f;
 			jump = false;
-			visible_player = true;
+			player->setVisible(true);
+			player->setBonus(false);
 		}
 	}
 	else
@@ -159,12 +138,8 @@ void GameBoard::update()
 {
 	while (!WindowShouldClose())
 	{
-		//dt = 0.015 * 1.2;
-		dt = GetFrameTime();
+		dt = GetFrameTime() * 1.2;
 
-		//dt = 0.015 * 1.2;
-
-		//dt = 1.0f / 60 * 1.2;
 
 		handlerKeyboard();
 
@@ -172,13 +147,12 @@ void GameBoard::update()
 
 		jumping();
 		
-		if ((int)GetTime() % 30 == 0)//как генерировать бонус?
+		if ((int)GetTime() % 30 == 0 && GetTime() > 1.0)//как генерировать бонус?
 		{
-			rocket_rectangle.x = steps[19]->getStep().x;
-			rocket_rectangle.y = steps[19]->getStep().y - 50;
+			rocket->getBody().x = steps[0]->getStep().x;
+			rocket->getBody().y = steps[0]->getStep().y - 50;
 		}
 
-		score += fabs(low_point - low_point_prev);
 
 		if(low_point > player->getBody().y + 350)low_point = player->getBody().y + 350;
 
@@ -208,11 +182,11 @@ void GameBoard::update()
 			}
 		}
 
-		if (CheckCollisionRecs(player->getBody(), rocket_rectangle))player->Velocity = 1000.0f;
+		if (CheckCollisionRecs(player->getBody(), rocket->getBody())) { player->Velocity = 1000.0f; player->setBonus(true); }
 
-		if (CheckCollisionRecs(player->getBody(), black_hole_rectangle) && visible_player)handlerBlack_hole();
+		if (CheckCollisionRecs(player->getBody(), black_hole->getBody()) && player->getVisible())handlerBlack_hole();
 
-		if (low_point < black_hole_rectangle.y) { black_hole_rectangle.y -= GetRandomValue(5000,10000); black_hole_rectangle.x = GetRandomValue(0, 300); }
+		if (low_point < black_hole->getBody().y) { black_hole->minusY(GetRandomValue(5000,10000)); black_hole->setX(GetRandomValue(0, 300)); }
 	
 
 
@@ -242,7 +216,7 @@ void GameBoard::cameraUpdate()
 void GameBoard::handlerBlack_hole()
 {
 	
-	visible_player = false;
+	player->setVisible(false);
 
 	player->Velocity = 1000.0f;
 
@@ -268,13 +242,25 @@ void GameBoard::draw()
 
 		for (size_t i = 0; i < NUMBER_OF_STEPS; i++)
 		{
-			DrawTextureRec(cloud, frameStep.at(i), steps[i]->getPosition(), WHITE);
+			DrawTextureRec(steps[i]->getTexture(), steps[i]->getFrame(), steps[i]->getPosition(), WHITE);
 		}
 
 
-		DrawTextureRec(black_hole, frameBlack_hole, Vector2{ black_hole_rectangle.x,black_hole_rectangle.y }, WHITE);
-		DrawTextureRec(rocket, frameRocket, Vector2{ rocket_rectangle.x,rocket_rectangle.y }, WHITE);
-		if(visible_player)DrawTextureRec(monster, framePlayer, player->GetXY(),WHITE);
+		DrawTextureRec(black_hole->getTexture(), black_hole->getFrame(), Vector2{ black_hole->getBody().x,black_hole->getBody().y}, WHITE);
+		DrawTextureRec(rocket->getTexture(), rocket->getFrame(), Vector2{ rocket->getBody().x,rocket->getBody().y }, WHITE);
+		if (player->getVisible())
+		{
+			if (!player->getBonus())
+			{
+				player->getFrame().x = (float)0 * (float)player->getTexture().width / 2;
+				DrawTextureRec(player->getTexture(), player->getFrame(), player->GetXY(), WHITE);
+			}
+			else
+			{
+				player->getFrame().x = (float)1 * (float)player->getTexture().width / 2;
+				DrawTextureRec(player->getTexture(), player->getFrame(), player->GetXY(), WHITE);
+			}
+		}
 
 
 
