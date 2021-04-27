@@ -15,7 +15,7 @@ public:
 	Rectangle getBody() { return body; }
 	void setY(float y) { body.y = y; }
 	void setX(float x) { body.x = x; }
-	void setFrame() { frame = { 0.0f,0.0f,(float)texture.width/2,(float)texture.height }; }
+	void setFrame() { frame = { 0.0f,0.0f,(float)texture.width,(float)texture.height }; }
 	void setTexture(const char* filename) { texture = LoadTexture(filename); }
 	void setVisible(bool v) { visible = v; }
 	Rectangle& getFrame() { return frame; }

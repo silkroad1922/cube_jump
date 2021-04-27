@@ -15,6 +15,7 @@ public:
 	Rectangle& getBody() { return body; }
 	void minusY(float y) { body.y -= y; }
 	void setX(float x) { body.x = x; }
+	void setY(float y) {body.y = y; }
 
 private:
 	Rectangle frame;

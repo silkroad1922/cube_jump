@@ -11,14 +11,18 @@
 #include <cstdlib>
 #include <cmath>
 #include "Bonus.h"
+#include "Button.h"
 
 
 
 class GameBoard
 {
 public:
+
+	enum class Scene {MENU,MAIN};
+
 	GameBoard() { Init(); }
-	~GameBoard() { CloseWindow(); UnloadTexture(background); UnloadTexture(player->getTexture()); }
+	~GameBoard() { CloseWindow(); }
 	void Init();
 	void update();
 	void handlerKeyboard();
@@ -28,12 +32,16 @@ public:
 	void checkPlayZone();
 	void cameraUpdate();
 	void handlerBlack_hole();
+	void retry();
 
 private:
 	std::unique_ptr<Player> player;
 	std::vector<std::unique_ptr<Steps>> steps;
 	std::unique_ptr<Bonus> rocket;
 	std::unique_ptr<Bonus> black_hole;
+	std::unique_ptr<Button> button_start;
+	std::unique_ptr<Button> button_retry;
+	std::unique_ptr<Button> button_exit;
 	Camera2D camera;
 	bool jump;
 	bool gameOver;
@@ -44,9 +52,11 @@ private:
 	float x_random;
 	float background_scroll;
 	Texture2D background;
-	int pixel;//отступ от леовй стороны до ноги персонажа
+	Texture2D background_menu;
+	int pixel;//пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 	int score;
 	float dt;
+	Scene scene;
 };
 
 

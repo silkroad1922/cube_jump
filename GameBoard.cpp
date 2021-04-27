@@ -8,6 +8,7 @@ void GameBoard::Init()
 	InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "doodle_jump");
 
 	background = LoadTexture("resource/space.png");
+	background_menu = LoadTexture("resource/background_menu3.png");
 
 
 	SetTargetFPS(60);
@@ -38,7 +39,7 @@ void GameBoard::Init()
 
 	//player
 	player = std::make_unique<Player>(Rectangle{ 0,0,PLAYER_WIDHT,PLAYER_HEIGHT });
-	player->setTexture("resource/pixel_8.png");
+	player->setTexture("resource/pixel_5.png");
 	player->setFrame();
 	player->setVisible(true);
 	player->setY(steps[0]->getStep().y-PLAYER_HEIGHT);
@@ -58,6 +59,24 @@ void GameBoard::Init()
 	black_hole->setFrame();
 	//
 
+	//Button_start
+	button_start = std::make_unique<Button>(Rectangle{150,500,100,50});
+	button_start->setTexture("resource/button.png");
+	button_start->setFrame();
+	//
+
+	//Button_rerty
+	button_retry = std::make_unique<Button>(Rectangle{0,500,100,50});
+	button_retry->setTexture("resource/button_retry.png");
+	button_retry->setFrame();
+	//
+
+	//Button_exit
+	button_exit = std::make_unique<Button>(Rectangle{300,500,100,50});
+	button_exit->setTexture("resource/button_exit.png");
+	button_exit->setFrame();
+	//
+
 	low_point = player->getBody().y + 350;
 	low_point_prev = player->getBody().y + 350;
 	background_scroll = 0.0f;
@@ -68,6 +87,7 @@ void GameBoard::Init()
 	camera.zoom = 1.0f;
 
 	prev = player->getBody();
+	scene = Scene::MENU;
 
 
 }
@@ -140,19 +160,18 @@ void GameBoard::update()
 	{
 		dt = GetFrameTime() * 1.2;
 
+		switch (scene)
+		{
+		case Scene::MAIN:
+		{
 
+		if(!gameOver)
+		{
 		handlerKeyboard();
 
 		checkPlayZone();
 
 		jumping();
-		
-		if ((int)GetTime() % 30 == 0 && GetTime() > 1.0)//как генерировать бонус?
-		{
-			rocket->getBody().x = steps[0]->getStep().x;
-			rocket->getBody().y = steps[0]->getStep().y - 50;
-		}
-
 
 		if(low_point > player->getBody().y + 350)low_point = player->getBody().y + 350;
 
@@ -160,6 +179,22 @@ void GameBoard::update()
 
 		for (int i = 0; i < steps.size(); i++)
 		{
+
+			//bonus generation
+			if ((int)GetTime() % 30 == 0 && GetTime() > 1.0 && low_point < steps[i]->getStep().y && low_point < rocket->getBody().y)
+			{
+				if(i==0)
+				{
+					rocket->getBody().x = steps[steps.size()-1]->getStep().x;
+					rocket->getBody().y = steps[steps.size()-1]->getStep().y - 50;
+				}else
+				{
+					rocket->getBody().x = steps[i-1]->getStep().x;
+					rocket->getBody().y = steps[i-1]->getStep().y - 50;
+				}
+			}
+			//
+
 			if(low_point < steps[i]->getStep().y )
 			{
 				x_random = GetRandomValue(0,350);
@@ -182,7 +217,7 @@ void GameBoard::update()
 			}
 		}
 
-		if (CheckCollisionRecs(player->getBody(), rocket->getBody())) { player->Velocity = 1000.0f; player->setBonus(true); }
+		if (CheckCollisionRecs(player->getBody(), rocket->getBody())) { player->Velocity = 1000.0f; player->setBonus(true);jump = true; }
 
 		if (CheckCollisionRecs(player->getBody(), black_hole->getBody()) && player->getVisible())handlerBlack_hole();
 
@@ -197,11 +232,26 @@ void GameBoard::update()
 
 		prev = player->getBody();
 		low_point_prev = low_point;
-		
-
-
+		}else
+		{
+			if(IsMouseButtonPressed(0) && 
+			CheckCollisionPointRec(GetMousePosition(),button_exit->getBound()))CloseWindow();
+			if(IsMouseButtonPressed(0) && 
+			CheckCollisionPointRec(GetMousePosition(),button_retry->getBound()))retry();
+		}
 		draw();
+		break;
+		}
+		
+		case Scene::MENU:
+		{
+			if(IsMouseButtonPressed(0) &&
+			CheckCollisionPointRec(GetMousePosition(),button_start->getBound()))scene = Scene::MAIN;
 
+			draw();
+			break;
+		}
+		}
 	
 	}
 }
@@ -227,11 +277,15 @@ void GameBoard::handlerBlack_hole()
 
 void GameBoard::draw()
 {
+	switch (scene)
+	{
+	case Scene::MAIN:
+	{
+
 	BeginDrawing();
 
-	DrawText(TextFormat("low_point_ : %02.02f",score),0,100,15,GREEN);
-
 	ClearBackground(GetColor(0x052c46ff));
+	DrawText(TextFormat("low_point_ : %02.02f",score),0,100,15,GREEN);
 
 		
 		BeginMode2D(camera);
@@ -250,31 +304,85 @@ void GameBoard::draw()
 		DrawTextureRec(rocket->getTexture(), rocket->getFrame(), Vector2{ rocket->getBody().x,rocket->getBody().y }, WHITE);
 		if (player->getVisible())
 		{
-			if (!player->getBonus())
-			{
-				player->getFrame().x = (float)0 * (float)player->getTexture().width / 2;
-				DrawTextureRec(player->getTexture(), player->getFrame(), player->GetXY(), WHITE);
-			}
-			else
-			{
-				player->getFrame().x = (float)1 * (float)player->getTexture().width / 2;
-				DrawTextureRec(player->getTexture(), player->getFrame(), player->GetXY(), WHITE);
-			}
+			DrawTextureRec(player->getTexture(), player->getFrame(), player->GetXY(), WHITE);
 		}
-
-
 
 		EndMode2D();
 
-		if(gameOver)DrawText("GameOver",120,200,30,GRAY);
+		if(gameOver)
+		{
+			DrawText("GameOver",120,200,30,GRAY);
+			DrawTextureRec(button_retry->getTexture(),button_retry->getFrame(),Vector2{button_retry->getBound().x,button_retry->getBound().y},WHITE);
+			DrawTextureRec(button_exit->getTexture(),button_exit->getFrame(),Vector2{button_exit->getBound().x,button_exit->getBound().y},WHITE);
+
+		}
+		else
+		{
 		DrawFPS(0,200);
 		DrawText(TextFormat("Score : %02i", score/10), 0, 0,15, GREEN);
 		DrawText(TextFormat("position_y : %02.02f", player->getBody().y),0,100,15,GREEN);
 		DrawText(TextFormat("low_point : %02.02f", low_point), 0, 150, 15, GREEN);
+		}
+		EndDrawing();
+		break;
+	}
 
-		
+	case Scene::MENU:
+	{
+		BeginDrawing();
 
-	EndDrawing();
+		ClearBackground(GRAY);
 
+		DrawTexture(background_menu,0,0,WHITE);
+
+		DrawTextureRec(button_start->getTexture(),button_start->getFrame(),Vector2{button_start->getBound().x,button_start->getBound().y},WHITE);
+
+
+		EndDrawing();
+		break;
+	}
 }
+}
+void GameBoard::retry()
+{
+	jump = true;
+	gameOver = false;
 
+	for (size_t i = 0; i < NUMBER_OF_STEPS; i++)
+	{
+		x_random = GetRandomValue(0,350);
+		if(i==0)
+		{
+			y_random = WINDOW_HEIGHT / 2 + i * GetRandomValue(-100,-50);
+		}else
+		{
+			y_random = steps[i-1]->getStep().y - GetRandomValue(30,100);
+		}
+		steps[i]->setX(x_random);
+		steps[i]->setY(y_random);
+	}
+
+	player->setVisible(true);
+	player->setY(steps[0]->getStep().y-PLAYER_HEIGHT);
+	player->setX(steps[0]->getStep().x);
+	player->Velocity = 500.0f;
+
+	rocket->setX(steps[10]->getStep().x);
+	rocket->setY(steps[10]->getStep().y-50);
+
+	black_hole->setX(0);
+	black_hole->setY(-800);
+
+	prev = player->getBody();
+
+	score = 0;
+
+	camera.offset = { WINDOW_WIDTH/2,WINDOW_HEIGHT/2 };
+	camera.rotation = 0.0f;
+	camera.target = { player->GetXY() };
+	camera.zoom = 1.0f;
+
+	low_point = player->getBody().y + 350;
+	low_point_prev = player->getBody().y + 350;
+	background_scroll = 0.0f;
+}
