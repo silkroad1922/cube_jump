@@ -19,6 +19,7 @@ void GameBoard::Init()
 	score = 0;
 	dt = GetFrameTime();
 
+
 	//step	
 	for (size_t i = 0; i < NUMBER_OF_STEPS; i++)
 	{
