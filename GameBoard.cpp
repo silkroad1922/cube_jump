@@ -7,9 +7,12 @@ void GameBoard::Init()
 
 	InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "doodle_jump");
 
+
 	background = LoadTexture("resource/space.png");
 	background_menu = LoadTexture("resource/background_menu3.png");
-
+	
+	steps_texture = std::make_shared<TextureHolder>();
+	steps_texture->setTexture("resource/test6.png");
 
 	SetTargetFPS(60);
 	jump = true;
@@ -33,7 +36,7 @@ void GameBoard::Init()
 		}
 
 		steps.push_back(std::make_unique<Steps>(Rectangle{ x_random,y_random,STEPS_WIDTH,STEPS_HEIGHT }));
-		steps[i]->setTexture("resource/test6.png");
+		steps[i]->setTexture(steps_texture);
 		steps[i]->setFrame();
 	}
 	//

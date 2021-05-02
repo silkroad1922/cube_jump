@@ -3,6 +3,8 @@
 #define STEPS_H
 
 #include <raylib.h>
+#include "TextureHolder.h"
+#include <memory>
 
 class Steps
 {
@@ -13,15 +15,15 @@ public:
 	void setY(float y) { step.y = y; }
 	Vector2 getPosition() { return Vector2{ step.x,step.y }; }
 
-	void setTexture(const char* filename) { texture = LoadTexture(filename); }
-	void setFrame() { frame = { 0.0f,0.0f,(float)texture.width,(float)texture.height }; }
+	void setTexture(std::shared_ptr<TextureHolder> t) { texture = t; }
+	void setFrame() { frame = { 0.0f,0.0f,(float)texture->getTexture().width,(float)texture->getTexture().height }; }
 
 	Rectangle& getFrame() { return frame; }
-	Texture2D& getTexture() { return texture; }
+	Texture2D getTexture() { return texture->getTexture(); }
 
 private:
 	Rectangle step;
-	Texture2D texture;
+	std::shared_ptr<TextureHolder> texture;
 	Rectangle frame;
 };
 
