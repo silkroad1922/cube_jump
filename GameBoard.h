@@ -12,6 +12,7 @@
 #include <cmath>
 #include "Bonus.h"
 #include "Button.h"
+#include "TextureHolder.h"
 
 
 
@@ -35,6 +36,7 @@ public:
 	void retry();
 
 private:
+	std::shared_ptr<TextureHolder> steps_texture;
 	std::unique_ptr<Player> player;
 	std::vector<std::unique_ptr<Steps>> steps;
 	std::unique_ptr<Bonus> rocket;
