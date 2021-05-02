@@ -237,7 +237,7 @@ void GameBoard::update()
 		}else
 		{
 			if(IsMouseButtonPressed(0) && 
-			CheckCollisionPointRec(GetMousePosition(),button_exit->getBound()))game = falsegi;
+			CheckCollisionPointRec(GetMousePosition(),button_exit->getBound()))game = false;
 			if(IsMouseButtonPressed(0) && 
 			CheckCollisionPointRec(GetMousePosition(),button_retry->getBound()))retry();
 		}
