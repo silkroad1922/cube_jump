@@ -44,7 +44,8 @@ private:
 	std::unique_ptr<Button> button_exit;
 	Camera2D camera;
 	bool jump;
-	bool gameOver;
+	bool gameOver; 
+	bool game;
 	Rectangle prev;
 	float low_point;
 	float low_point_prev;
@@ -53,7 +54,7 @@ private:
 	float background_scroll;
 	Texture2D background;
 	Texture2D background_menu;
-	int pixel;//������ �� ����� ������� �� ���� ���������
+	int pixel;
 	int score;
 	float dt;
 	Scene scene;

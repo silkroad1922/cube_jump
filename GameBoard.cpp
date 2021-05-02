@@ -14,6 +14,7 @@ void GameBoard::Init()
 	SetTargetFPS(60);
 	jump = true;
 	gameOver = false;
+	game = true;
 
 	pixel = 15;
 	score = 0;
@@ -157,7 +158,7 @@ void GameBoard::checkPlayZone()
 //class 
 void GameBoard::update()
 {
-	while (!WindowShouldClose())
+	while (!WindowShouldClose() && game)
 	{
 		dt = GetFrameTime() * 1.2;
 
@@ -236,7 +237,7 @@ void GameBoard::update()
 		}else
 		{
 			if(IsMouseButtonPressed(0) && 
-			CheckCollisionPointRec(GetMousePosition(),button_exit->getBound()))CloseWindow();
+			CheckCollisionPointRec(GetMousePosition(),button_exit->getBound()))game = falsegi;
 			if(IsMouseButtonPressed(0) && 
 			CheckCollisionPointRec(GetMousePosition(),button_retry->getBound()))retry();
 		}
