@@ -23,6 +23,18 @@ void GameBoard::Init()
 	score = 0;
 	dt = GetFrameTime();
 
+	//login
+	letterCount = 0;
+	loginBox = { 85,450,225,50 };
+	//
+
+	//leader
+	leader = { 340,680,50,10 };
+	statistic.open("resource/statistic.txt" , std::fstream::in);
+	statistic >> leader_score;
+	statistic >> leader_name;
+	statistic.close();
+	//
 
 	//step	
 	for (size_t i = 0; i < NUMBER_OF_STEPS; i++)
@@ -250,8 +262,37 @@ void GameBoard::update()
 		
 		case Scene::MENU:
 		{
+
+			if (CheckCollisionPointRec(GetMousePosition(), loginBox))mouseOnText = true;
+			else mouseOnText = false;
+
+			if (mouseOnText)
+			{
+
+				SetMouseCursor(MOUSE_CURSOR_IBEAM);
+				int key = GetCharPressed();
+				while (key>0)
+				{
+					if ((key >= 32) && (key <= 125) && letterCount < 9)
+					{
+						login += (char)key;
+						letterCount++;
+					}
+					key = GetCharPressed();
+				}
+
+				if (IsKeyPressed(KEY_BACKSPACE))
+				{
+					letterCount--;
+					if (letterCount < 0)letterCount = 0;
+					if(!login.empty())login.pop_back();
+				}
+
+			}else SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+
 			if(IsMouseButtonPressed(0) &&
-			CheckCollisionPointRec(GetMousePosition(),button_start->getBound()))scene = Scene::MAIN;
+			CheckCollisionPointRec(GetMousePosition(),button_start->getBound()) && letterCount > 0 )scene = Scene::MAIN;
+
 
 			draw();
 			break;
@@ -338,9 +379,33 @@ void GameBoard::draw()
 
 		ClearBackground(GRAY);
 
+		DrawRectangleRec(loginBox, LIGHTGRAY);
+		DrawRectangleRec(leader, GRAY);
+		//if (CheckCollisionPointRec(GetMousePosition(), leader))  DrawText(TextFormat("%s : %i" ,leader_name.c_str(),leader_score,10) , 220, 650, 20, BLACK);
+
+
 		DrawTexture(background_menu,0,0,WHITE);
 
-		DrawTextureRec(button_start->getTexture(),button_start->getFrame(),Vector2{button_start->getBound().x,button_start->getBound().y},WHITE);
+		if (CheckCollisionPointRec(GetMousePosition(), leader))  DrawText(TextFormat("%s : %i", leader_name.c_str(), leader_score, 10), 220, 650, 20, BLACK);
+
+		DrawText(login.c_str(), loginBox.x + 5, loginBox.y + 8, 40, MAROON);
+		DrawText(TextFormat("YOU`R NICKNAME: %i/%i", letterCount, 9), 85, 430, 20, BLACK);
+		DrawText("leader", 350, 680, 10, RED);
+
+		if (mouseOnText)
+		{
+			DrawRectangleLines(loginBox.x, loginBox.y, loginBox.width, loginBox.height, RED);
+
+			if (letterCount < 9)
+			{
+				if((int)GetTime()%2 == 0)DrawText("_", loginBox.x + 8 + MeasureText(login.c_str(), 40), loginBox.y + 12, 40, MAROON);
+			}
+		}
+
+		else DrawRectangleLines(loginBox.x, loginBox.y, loginBox.width, loginBox.height, DARKGRAY);
+
+		if(letterCount == 0)	DrawTextureRec(button_start->getTexture(),button_start->getFrame(),Vector2{button_start->getBound().x,button_start->getBound().y},ColorAlpha(WHITE,0.5f));
+		else DrawTextureRec(button_start->getTexture(), button_start->getFrame(), Vector2{ button_start->getBound().x,button_start->getBound().y }, ColorAlpha(WHITE, 1.0f));
 
 
 		EndDrawing();
@@ -390,4 +455,26 @@ void GameBoard::retry()
 	low_point = player->getBody().y + 350;
 	low_point_prev = player->getBody().y + 350;
 	background_scroll = 0.0f;
+}
+
+void GameBoard::updateStatistic()
+{
+	statistic.open("resource/statistic.txt",std::fstream::in | std::fstream::out );
+
+	int s;
+
+	statistic >> s;
+
+	if ((score/10) > s)
+	{
+		statistic.close();
+		statistic.open("resource/statistic.txt", std::fstream::out | std::fstream::trunc);
+		statistic << (score/10);
+		statistic << ' ' + login;
+	}
+	
+
+	statistic.close();
+
+
 }

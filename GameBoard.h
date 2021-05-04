@@ -13,6 +13,8 @@
 #include "Bonus.h"
 #include "Button.h"
 #include "TextureHolder.h"
+#include <string>
+#include <fstream>
 
 
 
@@ -23,7 +25,7 @@ public:
 	enum class Scene {MENU,MAIN};
 
 	GameBoard() { Init(); }
-	~GameBoard() { CloseWindow(); }
+	~GameBoard() { CloseWindow(); updateStatistic(); }
 	void Init();
 	void update();
 	void handlerKeyboard();
@@ -34,6 +36,8 @@ public:
 	void cameraUpdate();
 	void handlerBlack_hole();
 	void retry();
+	void updateStatistic();
+
 
 private:
 	std::shared_ptr<TextureHolder> steps_texture;
@@ -60,6 +64,21 @@ private:
 	int score;
 	float dt;
 	Scene scene;
+
+	//login
+	std::string login;
+	int letterCount;
+	Rectangle loginBox;
+	bool mouseOnText;
+	//
+
+	//leader
+	Rectangle leader;
+	std::string leader_name;
+	int leader_score;
+	std::fstream statistic;
+
+
 };
 
 
