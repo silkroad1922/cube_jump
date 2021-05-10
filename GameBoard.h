@@ -17,7 +17,6 @@
 #include <fstream>
 
 
-
 class GameBoard
 {
 public:

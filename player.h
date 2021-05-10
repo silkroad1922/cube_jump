@@ -19,6 +19,7 @@ public:
 	void setTexture(const char* filename) { texture = LoadTexture(filename); }
 	void setVisible(bool v) { visible = v; }
 	Rectangle& getFrame() { return frame; }
+	const Rectangle& getFrame() const  { return frame; } 
 	Texture2D& getTexture() { return texture; }
 	bool getVisible() { return visible; }
 	void setBonus(bool b) { bonus = b; }

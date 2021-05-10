@@ -15,7 +15,7 @@ public:
 	void setY(float y) { step.y = y; }
 	Vector2 getPosition() { return Vector2{ step.x,step.y }; }
 
-	void setTexture(std::shared_ptr<TextureHolder> t) { texture = t; }
+	void setTexture(const std::shared_ptr<TextureHolder>& t) { texture = t; }
 	void setFrame() { frame = { 0.0f,0.0f,(float)texture->getTexture().width,(float)texture->getTexture().height }; }
 
 	Rectangle& getFrame() { return frame; }
