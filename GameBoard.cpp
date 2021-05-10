@@ -43,7 +43,8 @@ void GameBoard::Init()
 		if(i==0)
 		{
 			y_random = WINDOW_HEIGHT / 2 + i * GetRandomValue(-100,-50);
-		}else
+		}
+		else
 		{
 			y_random = steps[i-1]->getStep().y - GetRandomValue(30,100);
 		}
@@ -68,12 +69,14 @@ void GameBoard::Init()
 	rocket = std::make_unique<Bonus>(Rectangle{ steps[10]->getStep().x,steps[10]->getStep().y-50,50,50 });
 	rocket->setTexture("resource/rocket.png");
 	rocket->setFrame();
+	rocket->setVisible(true);
 	//
 
 	//black_hole
 	black_hole = std::make_unique<Bonus>(Rectangle{ 0,-800,50,50 });
 	black_hole->setTexture("resource/black_hole.png");
 	black_hole->setFrame();
+	black_hole->setVisible(true);
 	//
 
 	//Button_start
@@ -98,7 +101,9 @@ void GameBoard::Init()
 	monster = std::make_unique<Enemy>(Rectangle{300,-2000,50,50});
 	monster->setTexture("resource/monster_1.png");
 	monster->setFrame();
-	monster->bullet = {monster->getBody().x/2,monster->getBody().y,5,5};
+	monster->setDir(Enemy::Dir::LEFT);
+	monster->bullet = { monster->getBody().x / 2, monster->getBody().y, 5, 5 };
+	monster->setVisible(true);
 	//
 
 	low_point = player->getBody().y + 350;
@@ -165,7 +170,8 @@ void GameBoard::checkPlayZone()
 	if (player->getBody().x + PLAYER_WIDHT < PLAY_ZONE.x)
 	{
 		player->setX(PLAY_ZONE.x + PLAY_ZONE.width);
-	}else if ( player->getBody().x > PLAY_ZONE.x + PLAY_ZONE.width)
+	}
+	else if ( player->getBody().x > PLAY_ZONE.x + PLAY_ZONE.width)
 	{
 		player->setX(PLAY_ZONE.x - player->getBody().width);
 	}
@@ -213,11 +219,21 @@ void GameBoard::update()
 				{
 					rocket->getBody().x = steps[steps.size()-1]->getStep().x;
 					rocket->getBody().y = steps[steps.size()-1]->getStep().y - 50;
-				}else
+					rocket->setVisible(true);
+				}
+				else
 				{
 					rocket->getBody().x = steps[i-1]->getStep().x;
 					rocket->getBody().y = steps[i-1]->getStep().y - 50;
+					rocket->setVisible(true);
 				}
+			}
+			//
+
+			//monster generation
+			if ((int)GetTime() % 60 == 0 && (int)GetTime() > 1.0 && low_point < monster->getBody().y)
+			{
+				monster->setY(low_point - 1500);
 			}
 			//
 
@@ -228,7 +244,8 @@ void GameBoard::update()
 				{
 				y_random = steps[steps.size()-1]->getStep().y - GetRandomValue(30,100);
 				steps[i]->setY(y_random);
-				}else
+				}
+				else
 				{
 				y_random = steps[i-1]->getStep().y - GetRandomValue(30,100);
 				steps[i]->setY(y_random);
@@ -244,7 +261,13 @@ void GameBoard::update()
 		}
 
 
-		if (CheckCollisionRecs(player->getBody(), rocket->getBody())) { player->Velocity = 1000.0f; player->setBonus(true);jump = true; }
+		if (CheckCollisionRecs(player->getBody(), rocket->getBody())) 
+		{ 
+			player->Velocity = 1000.0f;
+			player->setBonus(true);
+			jump = true; 
+			rocket->setVisible(false);
+		}
 
 		if (CheckCollisionRecs(player->getBody(), black_hole->getBody()) && player->getVisible())handlerBlack_hole();
 
@@ -261,6 +284,7 @@ void GameBoard::update()
 		{
 		if(monster->getBody().x+50 > PLAY_ZONE.x + PLAY_ZONE.width)monster->setDir(Enemy::Dir::LEFT);
 		else if(monster->getBody().x < PLAY_ZONE.x )monster->setDir(Enemy::Dir::RIGHT);
+
 		switch (monster->getDir())
 		{
 		case Enemy::Dir::LEFT:
@@ -270,18 +294,36 @@ void GameBoard::update()
 			monster->plusX(200.0f * dt);
 			break;
 		}
+
 		if(CheckCollisionRecs(monster->getBody(),player->getBody()))
 		{
 			player->setVisible(false);
 			gameOver = true;
 		}
+		//bullet
+		if (monster->getBody().y + 500 > player->getBody().y && monster->getBody().y - 350 < player->getBody().y + 50)
+		{
+			monster->bullet.y += 350 * dt;
+		}
 
+		if (monster->bullet.y > monster->getBody().y + 700 )
+		{
+			monster->bullet.y = monster->getBody().y;
+			monster->bullet.x = monster->getBody().x;
+		}
+		if (CheckCollisionRecs(player->getBody(), monster->bullet))
+		{
+			player->setVisible(false);
+			gameOver = true;
 		}
 		//
+		//
+		}
 
 		prev = player->getBody();
 		low_point_prev = low_point;
-		}else
+		}
+		else
 		{
 			if(IsMouseButtonPressed(0) && 
 			CheckCollisionPointRec(GetMousePosition(),button_exit->getBound()))game = false;
@@ -320,7 +362,8 @@ void GameBoard::update()
 					if(!login.empty())login.pop_back();
 				}
 
-			}else SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+			}
+			else SetMouseCursor(MOUSE_CURSOR_DEFAULT);
 
 			if(IsMouseButtonPressed(0) &&
 			CheckCollisionPointRec(GetMousePosition(),button_start->getBound()) && letterCount > 0 )scene = Scene::MAIN;
@@ -371,6 +414,9 @@ void GameBoard::draw()
 		DrawTexture(background,0, background_scroll,WHITE);
 		DrawTexture(background,0,background_scroll-700,WHITE);
 			
+		//
+		DrawRectangleRec(monster->bullet, RED);
+		//
 
 		for (size_t i = 0; i < NUMBER_OF_STEPS; i++)
 		{
@@ -379,8 +425,9 @@ void GameBoard::draw()
 
 
 		DrawTextureRec(black_hole->getTexture(), black_hole->getFrame(), Vector2{ black_hole->getBody().x,black_hole->getBody().y}, WHITE);
-		DrawTextureRec(rocket->getTexture(), rocket->getFrame(), Vector2{ rocket->getBody().x,rocket->getBody().y }, WHITE);
+		if(rocket->getVisible())DrawTextureRec(rocket->getTexture(), rocket->getFrame(), Vector2{ rocket->getBody().x,rocket->getBody().y }, WHITE);
 		DrawTextureRec(monster->getTexture(), monster->getFrame(), Vector2{ monster->getBody().x,monster->getBody().y }, WHITE);
+		
 		if (player->getVisible())
 		{
 			DrawTextureRec(player->getTexture(), player->getFrame(), player->GetXY(), WHITE);
@@ -455,7 +502,8 @@ void GameBoard::retry()
 		if(i==0)
 		{
 			y_random = WINDOW_HEIGHT / 2 + i * GetRandomValue(-100,-50);
-		}else
+		}
+		else
 		{
 			y_random = steps[i-1]->getStep().y - GetRandomValue(30,100);
 		}
@@ -470,9 +518,15 @@ void GameBoard::retry()
 
 	rocket->setX(steps[10]->getStep().x);
 	rocket->setY(steps[10]->getStep().y-50);
+	rocket->setVisible(true);
 
 	black_hole->setX(0);
 	black_hole->setY(-800);
+
+	monster->setX(300);
+	monster->setY(-2000);
+	monster->bullet = { monster->getBody().x / 2, monster->getBody().y, 5, 5 };
+
 
 	prev = player->getBody();
 
