@@ -94,6 +94,13 @@ void GameBoard::Init()
 	button_exit->setFrame();
 	//
 
+	//monster
+	monster = std::make_unique<Enemy>(Rectangle{300,-2000,50,50});
+	monster->setTexture("resource/monster_1.png");
+	monster->setFrame();
+	monster->bullet = {monster->getBody().x/2,monster->getBody().y,5,5};
+	//
+
 	low_point = player->getBody().y + 350;
 	low_point_prev = player->getBody().y + 350;
 	background_scroll = 0.0f;
@@ -186,6 +193,8 @@ void GameBoard::update()
 		{
 		handlerKeyboard();
 
+		
+
 		checkPlayZone();
 
 		jumping();
@@ -234,6 +243,7 @@ void GameBoard::update()
 			}
 		}
 
+
 		if (CheckCollisionRecs(player->getBody(), rocket->getBody())) { player->Velocity = 1000.0f; player->setBonus(true);jump = true; }
 
 		if (CheckCollisionRecs(player->getBody(), black_hole->getBody()) && player->getVisible())handlerBlack_hole();
@@ -246,6 +256,28 @@ void GameBoard::update()
 		
 
 		cameraUpdate();
+
+		//enemy handler(monster)
+		{
+		if(monster->getBody().x+50 > PLAY_ZONE.x + PLAY_ZONE.width)monster->setDir(Enemy::Dir::LEFT);
+		else if(monster->getBody().x < PLAY_ZONE.x )monster->setDir(Enemy::Dir::RIGHT);
+		switch (monster->getDir())
+		{
+		case Enemy::Dir::LEFT:
+			monster->minusX(200.0f * dt);
+			break;
+		case Enemy::Dir::RIGHT:
+			monster->plusX(200.0f * dt);
+			break;
+		}
+		if(CheckCollisionRecs(monster->getBody(),player->getBody()))
+		{
+			player->setVisible(false);
+			gameOver = true;
+		}
+
+		}
+		//
 
 		prev = player->getBody();
 		low_point_prev = low_point;
@@ -348,6 +380,7 @@ void GameBoard::draw()
 
 		DrawTextureRec(black_hole->getTexture(), black_hole->getFrame(), Vector2{ black_hole->getBody().x,black_hole->getBody().y}, WHITE);
 		DrawTextureRec(rocket->getTexture(), rocket->getFrame(), Vector2{ rocket->getBody().x,rocket->getBody().y }, WHITE);
+		DrawTextureRec(monster->getTexture(), monster->getFrame(), Vector2{ monster->getBody().x,monster->getBody().y }, WHITE);
 		if (player->getVisible())
 		{
 			DrawTextureRec(player->getTexture(), player->getFrame(), player->GetXY(), WHITE);
@@ -381,9 +414,7 @@ void GameBoard::draw()
 
 		DrawRectangleRec(loginBox, LIGHTGRAY);
 		DrawRectangleRec(leader, GRAY);
-		//if (CheckCollisionPointRec(GetMousePosition(), leader))  DrawText(TextFormat("%s : %i" ,leader_name.c_str(),leader_score,10) , 220, 650, 20, BLACK);
-
-
+	
 		DrawTexture(background_menu,0,0,WHITE);
 
 		if (CheckCollisionPointRec(GetMousePosition(), leader))  DrawText(TextFormat("%s : %i", leader_name.c_str(), leader_score, 10), 220, 650, 20, BLACK);
