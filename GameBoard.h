@@ -15,6 +15,7 @@
 #include "TextureHolder.h"
 #include <string>
 #include <fstream>
+#include "Enemy.h"
 
 
 class GameBoard
@@ -47,6 +48,7 @@ private:
 	std::unique_ptr<Button> button_start;
 	std::unique_ptr<Button> button_retry;
 	std::unique_ptr<Button> button_exit;
+	std::unique_ptr<Enemy> monster;
 	Camera2D camera;
 	bool jump;
 	bool gameOver; 
